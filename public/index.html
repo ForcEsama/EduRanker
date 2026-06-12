@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduRanker — Sistem Perangkingan Nilai Rapor</title>
+  <meta name="description" content="Sistem perangkingan nilai rapor multi mata pelajaran berbasis Counting Sort. Rata-rata nilai diurutkan dari tertinggi ke terendah secara instan." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <h1>EduRanker</h1>
+      <p>Counting Sort Engine</p>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <a href="#" class="active" data-page="dashboard">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" data-page="input" class="admin-only">
+        <span class="material-symbols-outlined">edit_note</span>
+        <span>Input Nilai</span>
+      </a>
+      <a href="#" data-page="algorithm" class="admin-only">
+        <span class="material-symbols-outlined">auto_graph</span>
+        <span>Proses Algoritma</span>
+      </a>
+      <a href="#" data-page="results">
+        <span class="material-symbols-outlined">format_list_numbered</span>
+        <span>Hasil Ranking</span>
+      </a>
+      <a href="#" data-page="analytics">
+        <span class="material-symbols-outlined">analytics</span>
+        <span>Analitik Kelas</span>
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar" id="sidebar-avatar">AD</div>
+      <div class="sidebar-user-info">
+        <p id="sidebar-display-name">Loading...</p>
+        <span class="sidebar-role-badge admin" id="sidebar-role-badge">Admin</span>
+      </div>
+    </div>
+    <div class="sidebar-logout">
+      <button id="btn-logout">
+        <span class="material-symbols-outlined">logout</span>
+        <span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== TOP APP BAR ===== -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-left">
+      <h2>EduRanker</h2>
+      <div class="topbar-divider"></div>
+      <span class="topbar-subtitle" id="topbar-subtitle">Dashboard</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-search">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" placeholder="Cari data siswa..." id="global-search" />
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" title="Notifikasi">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <button class="topbar-icon-btn" title="Pengaturan">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+        <button class="topbar-icon-btn" title="Logout" id="btn-topbar-logout">
+          <span class="material-symbols-outlined">logout</span>
+        </button>
+        <div class="topbar-user-avatar" id="topbar-avatar">AD</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+    <div class="page-content">
+
+      <!-- ========== PAGE 1: DASHBOARD ========== -->
+      <section class="page-section active" id="page-dashboard">
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-direction:row; flex-wrap:wrap; gap:16px; margin-bottom:var(--space-lg);">
+          <div>
+            <h3>Ringkasan Performa Kelas</h3>
+            <p>Ringkasan Performa Multi Mata Pelajaran • Nilai Rapor</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 14px; font-weight: 600; color: var(--on-surface-variant);">Kelas:</label>
+            <select class="filter-class-select chart-select" style="min-width: 120px; height: 36px; padding: 0 12px;">
+              <option value="all">Semua Kelas</option>
+              <option value="10-A">Kelas 10-A</option>
+              <option value="10-B">Kelas 10-B</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bento Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-icon primary">
+                <span class="material-symbols-outlined">groups</span>
+              </div>
+              <span class="stat-badge" id="dash-new-badge"></span>
+            </div>
+            <div>
+              <p class="stat-label">Total Siswa</p>
+              <h4 class="stat-value" id="dash-total">0</h4>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-icon secondary">
+                <span class="material-symbols-outlined">query_stats</span>
+              </div>
+            </div>
+            <div>
+              <p class="stat-label">Rata-rata Kelas</p>
+              <h4 class="stat-value" id="dash-avg">—</h4>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-icon tertiary">
+                <span class="material-symbols-outlined">military_tech</span>
+              </div>
+            </div>
+            <div>
+              <p class="stat-label">Avg Tertinggi</p>
+              <h4 class="stat-value" id="dash-top">—</h4>
+              <p class="stat-sub" id="dash-top-sub"></p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-top">
+              <div class="stat-icon error">
+                <span class="material-symbols-outlined">trending_down</span>
+              </div>
+            </div>
+            <div>
+              <p class="stat-label">Perlu Perhatian</p>
+              <h4 class="stat-value" id="dash-low">—</h4>
+              <p class="stat-sub" id="dash-low-sub"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Grid -->
+        <div class="analysis-grid">
+          <!-- Chart Card -->
+          <div class="card card-xl">
+            <div class="chart-card-header">
+              <div>
+                <h5>Distribusi Rata-rata Rapor</h5>
+                <p>Frekuensi rata-rata siswa dari semua mata pelajaran</p>
+              </div>
+            </div>
+            <div class="chart-container" id="dash-chart">
+              <div class="chart-guides">
+                <div class="chart-guide-line"></div>
+                <div class="chart-guide-line"></div>
+                <div class="chart-guide-line"></div>
+                <div class="chart-guide-line"></div>
+                <div class="chart-guide-line"></div>
+              </div>
+              <!-- Bars rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Algo Insight Card -->
+          <div class="algo-card">
+            <div class="algo-card-bg"></div>
+            <h5>Counting Sort Aktif</h5>
+            <p>Mesin ranking menggunakan algoritma Counting Sort linear-time untuk memproses batch nilai rapor terbaru. Efisiensi dioptimalkan untuk distribusi nilai integer.</p>
+            <div class="algo-card-stats">
+              <div class="algo-efficiency">
+                <div class="algo-efficiency-header">
+                  <span>Efisiensi Proses</span>
+                  <span id="dash-efficiency">—</span>
+                </div>
+                <div class="algo-progress-bar">
+                  <div class="algo-progress-fill" id="dash-efficiency-bar" style="width:0%"></div>
+                </div>
+              </div>
+              <button class="btn-recalc" id="btn-recalc">Hitung Ulang Ranking</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Ranking Table -->
+        <div class="card table-card">
+          <div class="table-card-header">
+            <h5>Top Ranking Siswa</h5>
+            <button id="btn-view-all-results">Lihat Semua Hasil</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="dash-top-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Nama Siswa</th>
+                  <th>ID Siswa</th>
+                  <th>Rata-rata Rapor</th>
+                  <th style="text-align:right;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="dash-top-tbody">
+                <tr>
+                  <td colspan="5" style="text-align:center;color:var(--on-surface-variant);padding:40px;">
+                    Belum ada data. Masukkan nilai siswa melalui menu <strong>Input Nilai</strong>.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE 2: INPUT NILAI ========== -->
+      <section class="page-section" id="page-input">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h3>Input Nilai Rapor</h3>
+              <p>Masukkan nilai per mata pelajaran untuk setiap siswa. Counting Sort membutuhkan <span class="highlight">nilai integer (0-100)</span> untuk efisiensi optimal O(n+k).</p>
+            </div>
+            <div class="btn-actions admin-only">
+              <button class="btn btn-outline" id="btn-import-csv">
+                <span class="material-symbols-outlined">upload_file</span>
+                Import CSV
+              </button>
+              <button class="btn btn-primary" id="btn-start-ranking">
+                <span class="material-symbols-outlined">play_arrow</span>
+                Jalankan Counting Sort
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-grid">
+          <!-- Main Table -->
+          <div>
+            <div class="card table-card">
+              <div class="table-card-header" style="display:flex; justify-content:space-between; align-items:center; gap: 16px; flex-wrap:wrap;">
+                <h5>Daftar Siswa</h5>
+                <div style="display:flex; align-items:center; gap: 12px; margin-left:auto;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--on-surface-variant);">Filter Kelas:</label>
+                    <select class="filter-class-select chart-select" style="min-width: 110px; height: 32px; padding: 0 8px;">
+                      <option value="all">Semua Kelas</option>
+                      <option value="10-A">10-A</option>
+                      <option value="10-B">10-B</option>
+                    </select>
+                  </div>
+                  <button class="btn btn-sm btn-secondary admin-only" id="btn-add-student">
+                    <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                    Tambah Siswa
+                  </button>
+                </div>
+              </div>
+
+              <!-- Generate Bar -->
+              <div class="generate-bar admin-only">
+                <span>Generate Data Acak:</span>
+                <button class="btn btn-outline btn-sm" data-gen="10">10 Siswa</button>
+                <button class="btn btn-outline btn-sm" data-gen="50">50 Siswa</button>
+                <button class="btn btn-outline btn-sm" data-gen="100">100 Siswa</button>
+                <button class="btn btn-outline btn-sm" data-gen="500">500 Siswa</button>
+                <div style="flex:1;"></div>
+                <button class="btn btn-sm" id="btn-clear-all" style="color:var(--error);">
+                  <span class="material-symbols-outlined" style="font-size:16px;">delete_sweep</span>
+                  Hapus Semua
+                </button>
+              </div>
+
+              <div class="table-wrap" id="input-table-wrap">
+                <table class="data-table" id="input-table">
+                  <thead id="input-thead">
+                    <tr>
+                      <th>ID Siswa</th>
+                      <th>Nama Lengkap</th>
+                      <th>Avg.</th>
+                      <th style="text-align:center;">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="input-tbody">
+                    <tr>
+                      <td colspan="4" style="text-align:center;color:var(--on-surface-variant);padding:40px;">
+                        Belum ada data siswa. Tambahkan siswa atau generate data acak.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer" id="input-table-footer">
+                <span>0 siswa</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Info Sidebar -->
+          <div>
+            <!-- Algorithm Requirements -->
+            <div class="algo-req-card" style="margin-bottom: var(--space-lg);">
+              <span class="material-symbols-outlined bg-icon">functions</span>
+              <h4>
+                <span class="material-symbols-outlined">info</span>
+                Persyaratan Algoritma
+              </h4>
+              <p>EduRanker menggunakan <strong>Counting Sort</strong> untuk meranking siswa berdasarkan rata-rata rapor. Agar kompatibel dengan integer, rata-rata diskala (dikali 10) sebelum sorting.</p>
+              <ul class="algo-req-list">
+                <li>
+                  <span class="material-symbols-outlined">check_circle</span>
+                  Rata-rata dihitung dari semua mata pelajaran.
+                </li>
+                <li>
+                  <span class="material-symbols-outlined">check_circle</span>
+                  Nilai diskala ke integer untuk sorting O(n+k).
+                </li>
+                <li>
+                  <span class="material-symbols-outlined">check_circle</span>
+                  Stabilitas menjaga urutan asli untuk rata-rata sama.
+                </li>
+              </ul>
+            </div>
+
+            <!-- Statistics Preview -->
+            <div class="card stats-preview">
+              <h4>Statistik Input</h4>
+              <div class="progress-item">
+                <div class="progress-header">
+                  <span class="label">Kelengkapan Data</span>
+                  <span class="value" id="input-completeness">0%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="input-completeness-bar" style="width:0%"></div>
+                </div>
+              </div>
+              <div class="mini-stats-grid">
+                <div class="mini-stat">
+                  <p class="label">Avg. Grade</p>
+                  <p class="value" id="input-avg">—</p>
+                </div>
+                <div class="mini-stat">
+                  <p class="label">Std. Dev</p>
+                  <p class="value" id="input-std">—</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE 3: PROSES ALGORITMA ========== -->
+      <section class="page-section" id="page-algorithm">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h3>Visualisasi Counting Sort</h3>
+              <p>Algoritma sorting integer yang efisien dengan kompleksitas <span class="highlight">O(n+k)</span>. Untuk rata-rata rapor desimal (misal 88.5) diskala ke integer (885) agar sesuai range counting.</p>
+            </div>
+            <div class="btn-actions" style="display:none;"> <!-- Hide old buttons in favor of the new control panel -->
+              <button class="btn btn-outline btn-round" id="btn-algo-prev" disabled>
+                <span class="material-symbols-outlined">chevron_left</span>
+                Sebelumnya
+              </button>
+              <button class="btn btn-primary btn-round" id="btn-algo-next" disabled>
+                Selanjutnya
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualizer Control Bar -->
+        <div class="card card-padded" id="algo-controls" style="margin-bottom: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-md); background: var(--surface-container-lowest);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-lg); flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+              <h5 style="font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--primary);" id="algo-step-title">Fase: Inisialisasi</h5>
+              <p style="font-size: 14px; color: var(--on-surface-variant); margin: 0;" id="algo-step-desc">Memulai visualisasi Counting Sort...</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--space-sm);">
+              <span id="algo-step-counter" style="font-size: 14px; font-weight: 700; font-family: monospace; color: var(--primary);">Langkah: 0 / 0</span>
+              <div style="display: flex; gap: var(--space-xs);">
+                <button class="btn btn-outline btn-sm btn-round" id="btn-control-prev" title="Sebelumnya" style="height:36px; width:36px; padding:0; display:inline-flex; align-items:center; justify-content:center;"><span class="material-symbols-outlined">skip_previous</span></button>
+                <button class="btn btn-primary btn-sm btn-round" id="btn-control-play" title="Mulai / Jeda" style="height:36px; width:36px; padding:0; display:inline-flex; align-items:center; justify-content:center;"><span class="material-symbols-outlined" id="control-play-icon">play_arrow</span></button>
+                <button class="btn btn-outline btn-sm btn-round" id="btn-control-next" title="Berikutnya" style="height:36px; width:36px; padding:0; display:inline-flex; align-items:center; justify-content:center;"><span class="material-symbols-outlined">skip_next</span></button>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-md);">
+            <input type="range" id="algo-progress-slider" min="0" max="0" value="0" style="flex: 1; cursor: pointer; accent-color: var(--primary);" />
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="font-size: 12px; font-weight: 600; color: var(--on-surface-variant);">Kecepatan:</label>
+              <select id="algo-speed" style="font-family: inherit; font-size: 12px; padding: 4px 8px; border-radius: var(--radius); border: 1px solid var(--outline-variant); background:var(--surface-container-lowest); color:var(--on-surface); cursor:pointer;">
+                <option value="1500">Lambat</option>
+                <option value="800" selected>Normal</option>
+                <option value="300">Cepat</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unified Big Animation Canvas -->
+        <div class="card card-padded" id="algo-visualizer-card" style="margin-bottom: var(--space-lg); min-height: 400px; display: flex; flex-direction: column; justify-content: center; background: var(--surface-container-lowest); border: 1px solid rgba(196, 197, 213, 0.4);">
+          <div id="algo-canvas" style="display: flex; flex-direction: column; gap: var(--space-lg); align-items: center; justify-content: center; min-height: 350px; width: 100%;">
+            <div style="color:var(--on-surface-variant); padding:40px; text-align:center; font-weight: 500;">
+              Jalankan Counting Sort terlebih dahulu dari halaman Input Nilai.
+            </div>
+          </div>
+        </div>
+
+        <!-- Complexity Cards -->
+        <div class="complexity-grid">
+          <div class="complexity-card time">
+            <span class="material-symbols-outlined filled">speed</span>
+            <div>
+              <p class="complexity-label">Time Complexity</p>
+              <p class="complexity-value">O(n + k)</p>
+            </div>
+          </div>
+          <div class="complexity-card space">
+            <span class="material-symbols-outlined filled">storage</span>
+            <div>
+              <p class="complexity-label">Space Complexity</p>
+              <p class="complexity-value">O(k)</p>
+            </div>
+          </div>
+          <div class="complexity-card stable">
+            <span class="material-symbols-outlined filled">verified</span>
+            <div>
+              <p class="complexity-label">Stabilitas</p>
+              <p class="complexity-value">Stable Sort</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE 4: HASIL RANKING ========== -->
+      <section class="page-section" id="page-results">
+        <div class="page-header">
+          <div class="page-header-row">
+            <div>
+              <h3>Hasil Perangkingan</h3>
+              <p>Validasi pemrosesan via algoritma Counting Sort. <span id="result-entry-count">0</span> entri ditemukan.</p>
+            </div>
+            <div class="btn-actions action-dropdown-container" id="export-dropdown-container">
+              <button class="btn btn-outline" id="btn-download-report-toggle">
+                <span class="material-symbols-outlined">download</span>
+                Download / Export
+                <span class="material-symbols-outlined" style="font-size:16px; margin-left:4px;">expand_more</span>
+              </button>
+              <div class="action-dropdown-menu" id="export-dropdown-menu" style="min-width: 200px;">
+                <button class="action-dropdown-item" id="btn-export-csv">
+                  <span class="material-symbols-outlined" style="color: #107c41;">description</span> Format CSV (Excel)
+                </button>
+                <button class="action-dropdown-item" id="btn-export-pdf">
+                  <span class="material-symbols-outlined" style="color: #e3242b;">picture_as_pdf</span> Cetak / Simpan PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="results-stats">
+          <div class="result-stat-card">
+            <div class="result-stat-header">
+              <span class="result-stat-label">RATA-RATA RAPOR</span>
+              <span class="material-symbols-outlined result-stat-icon">analytics</span>
+            </div>
+            <div class="result-stat-value primary" id="res-avg">—</div>
+          </div>
+          <div class="result-stat-card">
+            <div class="result-stat-header">
+              <span class="result-stat-label">PASS RATE</span>
+              <span class="material-symbols-outlined result-stat-icon">check_circle</span>
+            </div>
+            <div class="result-stat-value secondary" id="res-pass-rate">—</div>
+            <div class="result-stat-sub neutral" id="res-pass-count"></div>
+          </div>
+          <div class="result-stat-card">
+            <div class="result-stat-header">
+              <span class="result-stat-label">NILAI TERTINGGI</span>
+              <span class="material-symbols-outlined result-stat-icon">grade</span>
+            </div>
+            <div class="result-stat-value primary" id="res-top">—</div>
+            <div class="result-stat-sub neutral" id="res-top-name"></div>
+          </div>
+          <div class="result-stat-card">
+            <div class="result-stat-header">
+              <span class="result-stat-label">DISTRIBUSI</span>
+              <span class="material-symbols-outlined result-stat-icon">bar_chart</span>
+            </div>
+            <div class="mini-chart-bars" id="res-mini-chart">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking Table -->
+        <div class="card table-card">
+          <div class="filter-toolbar">
+            <div class="filter-left">
+              <div class="filter-search">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" placeholder="Cari nama siswa..." id="result-search" />
+              </div>
+              <div class="filter-grade">
+                <label>Kelas:</label>
+                <select class="filter-class-select" style="padding: 6px 12px; font-size: 13px; cursor:pointer; border: 1px solid var(--outline-variant); border-radius: var(--radius); background: var(--surface-container-lowest); color: var(--on-surface);">
+                  <option value="all">Semua Kelas</option>
+                  <option value="10-A">Kelas 10-A</option>
+                  <option value="10-B">Kelas 10-B</option>
+                </select>
+              </div>
+              <div class="filter-grade">
+                <label>Grade Range:</label>
+                <select id="result-grade-filter">
+                  <option value="all">Semua</option>
+                  <option value="A">90% - 100% (A)</option>
+                  <option value="B">80% - 89% (B)</option>
+                  <option value="C">70% - 79% (C)</option>
+                  <option value="D">Di bawah 70% (D)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="result-table">
+              <thead id="result-thead">
+                <tr>
+                  <th>Rank</th>
+                  <th>Nama Siswa</th>
+                  <th>ID Internal</th>
+                  <th style="text-align:center;">Rata-rata</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="result-tbody">
+                <tr>
+                  <td colspan="6" style="text-align:center;color:var(--on-surface-variant);padding:40px;">
+                    Belum ada data. Masukkan nilai siswa dan jalankan Counting Sort.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer" id="result-table-footer">
+            <span>Menampilkan 0 entri</span>
+          </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="cta-grid">
+          <div class="cta-card primary">
+            <span class="material-symbols-outlined bg-icon-deco">sort</span>
+            <h4>Integrasi Analitik</h4>
+            <p>Generate laporan perbandingan mendalam antar semester menggunakan kecerdasan sorting kami.</p>
+            <button class="btn" id="btn-explore-reports">Eksplorasi Laporan</button>
+          </div>
+          <div class="card card-xl quick-logs">
+            <h4>Log Aktivitas</h4>
+            <ul id="activity-logs">
+              <li>
+                <div class="log-dot blue"></div>
+                <div>
+                  <p class="log-title">Menunggu Data</p>
+                  <p class="log-sub">Masukkan data siswa untuk memulai</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PAGE 5: ANALYTICS ========== -->
+      <section class="page-section" id="page-analytics">
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-direction:row; flex-wrap:wrap; gap:16px; margin-bottom:var(--space-lg);">
+          <div>
+            <h3>Analitik Kelas</h3>
+            <p>Analisis Statistik & Ringkasan Performa Kelas Secara Menyeluruh</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 14px; font-weight: 600; color: var(--on-surface-variant);">Kelas:</label>
+            <select class="filter-class-select chart-select" style="min-width: 120px; height: 36px; padding: 0 12px;">
+              <option value="all">Semua Kelas</option>
+              <option value="10-A">Kelas 10-A</option>
+              <option value="10-B">Kelas 10-B</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="analytics-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg);">
+          <!-- Subject Performance Card -->
+          <div class="card card-xl">
+            <h4 style="font-size:18px; font-weight:700; color:var(--primary); margin-bottom:16px;">Rata-rata Nilai per Pelajaran</h4>
+            <div id="analytics-subjects-bars" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Grade Distribution and Insights -->
+          <div class="card card-xl" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h4 style="font-size:18px; font-weight:700; color:var(--primary); margin-bottom:16px;">Distribusi Grade</h4>
+              <div id="analytics-grade-distribution" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+            
+            <div style="background: var(--surface-container-low); padding: var(--space-md); border-radius: var(--radius); border-left: 4px solid var(--secondary);">
+              <h5 style="font-size: 13px; font-weight:700; color: var(--secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">lightbulb</span>
+                Insight Kelas
+              </h5>
+              <p id="analytics-insight-text" style="font-size:13px; color:var(--on-surface-variant); line-height: 1.5;">Memuat analisis data kelas...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-bottom-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg);">
+          <!-- Subject Rank Select & Details -->
+          <div class="card card-xl">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h4 style="font-size:16px; font-weight:700; color:var(--primary);">Detail Rangking Pelajaran</h4>
+              <select id="analytics-subject-select" class="import-select" style="max-width: 180px; padding: 6px 12px; font-size: 13px; cursor:pointer;">
+                <!-- Populate dynamically -->
+              </select>
+            </div>
+            <div style="max-height: 250px; overflow-y: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 60px;">Rank</th>
+                    <th>Nama Siswa</th>
+                    <th style="text-align: center; width: 100px;">Nilai</th>
+                    <th style="text-align: center; width: 100px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-subject-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Students needing attention (Remedial list) -->
+          <div class="card card-xl">
+            <h4 style="font-size:16px; font-weight:700; color:var(--error); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+              <span class="material-symbols-outlined">warning</span>
+              Siswa Memerlukan Perhatian (Avg < 55)
+            </h4>
+            <div style="max-height: 250px; overflow-y: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nama Siswa</th>
+                    <th style="text-align: center; width: 100px;">Rerata</th>
+                    <th style="text-align: center; width: 120px;">Pelajaran Remedi</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-remedial-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast" role="alert" aria-live="polite">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span id="toast-message"></span>
+  </div>
+
+  <!-- ===== CUSTOM MODAL ===== -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="modal-title">Detail Nilai Siswa</h4>
+        <button class="modal-close" id="btn-close-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADD STUDENT MODAL ===== -->
+  <div class="modal-overlay" id="add-student-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4>Tambah Siswa Baru</h4>
+        <button class="modal-close" id="btn-close-add-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="add-student-form">
+        <div style="margin-bottom: 16px; display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--on-surface-variant);">Nama Lengkap</label>
+            <input type="text" id="add-student-name" class="form-input" placeholder="Masukkan nama lengkap..." required style="width:100%;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--on-surface-variant);">Kelas</label>
+            <select id="add-student-class" class="form-input" style="width:100%; height:40px; padding: 0 12px; cursor:pointer;">
+              <option value="10-A">10-A</option>
+              <option value="10-B">10-B</option>
+            </select>
+          </div>
+        </div>
+        
+        <h5 style="font-size: 14px; font-weight: 600; margin: 16px 0 8px 0; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Nilai Mata Pelajaran (0 - 100)</h5>
+        <div id="add-student-subjects" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+          <!-- Dynamically generated in JS -->
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--outline-variant); padding-top: 16px;">
+          <button type="button" class="btn btn-outline" id="btn-cancel-add" style="height: 40px; padding: 0 16px;">Batal</button>
+          <button type="submit" class="btn btn-primary" style="height: 40px; padding: 0 16px;">Simpan Siswa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== EDIT STUDENT MODAL ===== -->
+  <div class="modal-overlay" id="edit-student-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4>Edit Data Siswa</h4>
+        <button class="modal-close" id="btn-close-edit-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="edit-student-form">
+        <input type="hidden" id="edit-student-id" />
+        <div style="margin-bottom: 16px; display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--on-surface-variant);">Nama Lengkap</label>
+            <input type="text" id="edit-student-name" class="form-input" placeholder="Masukkan nama lengkap..." required style="width:100%;" />
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--on-surface-variant);">Kelas</label>
+            <select id="edit-student-class" class="form-input" style="width:100%; height:40px; padding: 0 12px; cursor:pointer;">
+              <option value="10-A">10-A</option>
+              <option value="10-B">10-B</option>
+            </select>
+          </div>
+        </div>
+        
+        <h5 style="font-size: 14px; font-weight: 600; margin: 16px 0 8px 0; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em;">Nilai Mata Pelajaran (0 - 100)</h5>
+        <div id="edit-student-subjects" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+          <!-- Dynamically generated in JS -->
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--outline-variant); padding-top: 16px;">
+          <button type="button" class="btn btn-outline" id="btn-cancel-edit" style="height: 40px; padding: 0 16px;">Batal</button>
+          <button type="submit" class="btn btn-primary" style="height: 40px; padding: 0 16px;">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== HIDDEN FILE INPUT FOR CSV ===== -->
+  <input type="file" id="csv-file-input" accept=".csv,.txt" style="display:none;" />
+
+  <!-- ===== IMPORT CSV MODAL ===== -->
+  <div class="modal-overlay" id="import-csv-modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h4>
+          <span class="material-symbols-outlined" style="color:var(--primary);margin-right:8px;">upload_file</span>
+          Import Data dari CSV
+        </h4>
+        <button class="modal-close" id="btn-close-import-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="import-modal-body">
+
+        <!-- Step 1: File Selection -->
+        <div id="import-step-select" class="import-step">
+          <div class="import-dropzone" id="import-dropzone">
+            <span class="material-symbols-outlined" style="font-size:48px; color:var(--primary); margin-bottom:12px;">cloud_upload</span>
+            <h5 style="font-size:16px; font-weight:700; margin-bottom:4px;">Drag & Drop file CSV di sini</h5>
+            <p style="font-size:14px; color:var(--on-surface-variant); margin-bottom:16px;">atau klik untuk memilih file</p>
+            <button class="btn btn-outline btn-sm" id="btn-browse-csv">
+              <span class="material-symbols-outlined" style="font-size:18px;">folder_open</span>
+              Pilih File
+            </button>
+          </div>
+          <div class="import-format-info">
+            <h5 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--on-surface-variant); margin-bottom:8px;">
+              <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">info</span>
+              Format CSV yang Didukung
+            </h5>
+            <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:8px;">
+              File CSV harus memiliki header (baris pertama) dengan minimal kolom <strong>Nama</strong> dan kolom nilai mata pelajaran.
+            </p>
+            <div class="import-example-csv">
+              <code>Nama,Matematika,B. Indonesia,B. Inggris,IPA,IPS</code><br>
+              <code>Andi Pratama,92,88,85,90,87</code><br>
+              <code>Budi Santoso,75,80,70,68,72</code>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Preview & Mapping -->
+        <div id="import-step-preview" class="import-step" style="display:none;">
+          <div class="import-file-info" id="import-file-info">
+            <span class="material-symbols-outlined" style="color:var(--secondary);">description</span>
+            <div>
+              <p id="import-filename" style="font-weight:600; font-size:14px;">filename.csv</p>
+              <p id="import-filedetails" style="font-size:12px; color:var(--on-surface-variant);">0 baris • 0 kolom</p>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btn-reselect-csv" style="margin-left:auto;">
+              <span class="material-symbols-outlined" style="font-size:16px;">refresh</span>
+              Ganti File
+            </button>
+          </div>
+
+          <!-- Column Mapping -->
+          <div class="import-mapping-section">
+            <h5 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--on-surface-variant); margin-bottom:12px;">
+              <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">settings</span>
+              Pengaturan Kolom
+            </h5>
+            <div class="import-mapping-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+              <div>
+                <label class="import-mapping-label">Kolom Nama Siswa</label>
+                <select id="import-col-name" class="import-select"></select>
+              </div>
+              <div>
+                <label class="import-mapping-label">Kolom Kelas (Opsional)</label>
+                <select id="import-col-class" class="import-select"></select>
+              </div>
+              <div>
+                <label class="import-mapping-label">Delimiter</label>
+                <select id="import-delimiter" class="import-select">
+                  <option value=",">Koma (,)</option>
+                  <option value=";">Titik Koma (;)</option>
+                  <option value="\t">Tab</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <label class="import-mapping-label">Kolom Nilai Mata Pelajaran (pilih satu atau lebih)</label>
+              <div id="import-col-subjects" class="import-subject-checkboxes"></div>
+            </div>
+          </div>
+
+          <!-- Preview Table -->
+          <div class="import-preview-section">
+            <h5 style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--on-surface-variant); margin-bottom:8px;">
+              <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">preview</span>
+              Preview Data (5 baris pertama)
+            </h5>
+            <div class="table-wrap" style="max-height:240px; overflow:auto;">
+              <table class="data-table" id="import-preview-table">
+                <thead id="import-preview-thead"></thead>
+                <tbody id="import-preview-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Import Options -->
+          <div class="import-options">
+            <label class="import-checkbox-label">
+              <input type="checkbox" id="import-opt-replace" />
+              <span>Ganti semua data yang ada (jika tidak dicentang, data CSV akan ditambahkan ke data yang ada)</span>
+            </label>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--outline-variant); padding-top:16px; margin-top:16px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-import" style="height:40px; padding:0 16px;">Batal</button>
+            <button type="button" class="btn btn-primary" id="btn-confirm-import" style="height:40px; padding:0 20px;">
+              <span class="material-symbols-outlined" style="font-size:18px;">download</span>
+              Import Data
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOGOUT CONFIRMATION MODAL ===== -->
+  <div class="modal-overlay" id="logout-confirm-modal">
+    <div class="modal-content" style="max-width:380px;">
+      <div class="modal-header">
+        <h4>Konfirmasi Keluar</h4>
+        <button class="modal-close" id="btn-close-logout-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding-bottom: 20px;">
+        Apakah Anda yakin ingin keluar dari sistem EduRanker?
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--outline-variant); padding-top: 16px;">
+        <button type="button" class="btn btn-outline" id="btn-cancel-logout" style="height: 40px; padding: 0 16px;">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-logout" style="height: 40px; padding: 0 16px; background-color: var(--error); border-color: var(--error); color: white;">Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PRINT REPORT MODAL ===== -->
+  <div class="modal-overlay" id="print-modal">
+    <div class="modal-content modal-lg" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+      <div class="modal-header no-print" style="padding: 24px 24px 16px 24px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; margin-bottom: 0;">
+        <h4 style="margin: 0;">Pratinjau Rapor Siswa</h4>
+        <button class="modal-close" id="btn-close-print-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body print-area" id="print-modal-body" style="overflow-y: auto; flex: 1; padding: 24px;">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer no-print" style="display:flex; justify-content:flex-end; gap:12px; border-top:1px solid var(--outline-variant); padding:16px 24px 24px 24px; flex-shrink: 0; background: var(--surface-container-lowest);">
+        <button type="button" class="btn btn-outline" id="btn-cancel-print" style="height: 40px; padding: 0 16px;">Tutup</button>
+        <button type="button" class="btn btn-primary" id="btn-do-print" style="height: 40px; padding: 0 16px;">
+          <span class="material-symbols-outlined" style="font-size:18px; margin-right:4px;">print</span>
+          Cetak / Simpan PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DELETE CONFIRMATION MODAL ===== -->
+  <div class="modal-overlay" id="delete-confirm-modal">
+    <div class="modal-content" style="max-width:380px;">
+      <div class="modal-header">
+        <h4>Konfirmasi Hapus</h4>
+        <button class="modal-close" id="btn-close-delete-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding-bottom: 20px;" id="delete-confirm-message">
+        Apakah Anda yakin ingin menghapus data ini?
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--outline-variant); padding-top: 16px;">
+        <button type="button" class="btn btn-outline" id="btn-cancel-delete" style="height: 40px; padding: 0 16px;">Batal</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-delete" style="height: 40px; padding: 0 16px; background-color: var(--error); border-color: var(--error); color: white;">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
