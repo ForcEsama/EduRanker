@@ -72,7 +72,7 @@
         <button class="topbar-icon-btn" title="Notifikasi">
           <span class="material-symbols-outlined">notifications</span>
         </button>
-        <button class="topbar-icon-btn" title="Pengaturan">
+        <button class="topbar-icon-btn" title="Pengaturan" id="btn-open-settings">
           <span class="material-symbols-outlined">settings</span>
         </button>
         <button class="topbar-icon-btn" title="Logout" id="btn-topbar-logout">
@@ -965,6 +965,103 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== SETTINGS PANEL (Slide-Out Drawer) ===== -->
+  <div class="settings-overlay" id="settings-overlay"></div>
+  <aside class="settings-panel" id="settings-panel">
+    <div class="settings-panel-header">
+      <h4><span class="material-symbols-outlined" style="margin-right: 8px;">settings</span>Pengaturan</h4>
+      <button class="modal-close" id="btn-close-settings">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="settings-panel-body">
+
+      <!-- Section 1: Tampilan -->
+      <div class="settings-section">
+        <h5 class="settings-section-title"><span class="material-symbols-outlined">palette</span> Tampilan</h5>
+        <div class="settings-row">
+          <div>
+            <p class="settings-row-label">Mode Gelap (Dark Mode)</p>
+            <p class="settings-row-desc">Aktifkan tema gelap untuk kenyamanan mata</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-dark-mode" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Section 2: KKM -->
+      <div class="settings-section">
+        <h5 class="settings-section-title"><span class="material-symbols-outlined">target</span> Batas Kelulusan (KKM)</h5>
+        <div class="settings-row" style="flex-direction: column; align-items: stretch;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <p class="settings-row-label">Nilai Minimum Kelulusan</p>
+            <span class="settings-kkm-value" id="settings-kkm-display">55</span>
+          </div>
+          <input type="range" id="settings-kkm-slider" min="0" max="100" value="55" style="width:100%; accent-color: var(--primary); cursor:pointer;" />
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--on-surface-variant); margin-top:4px;">
+            <span>0</span><span>50</span><span>100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Mata Pelajaran -->
+      <div class="settings-section admin-only">
+        <h5 class="settings-section-title"><span class="material-symbols-outlined">menu_book</span> Manajemen Mata Pelajaran</h5>
+        <div id="settings-subjects-list" class="settings-subjects-list">
+          <!-- Rendered by JS -->
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <input type="text" id="settings-new-subject" class="form-input" placeholder="Nama pelajaran baru..." style="flex:1; height:36px; font-size:13px;" />
+          <button class="btn btn-primary btn-sm" id="btn-add-subject" style="height:36px; padding:0 14px; white-space:nowrap;">
+            <span class="material-symbols-outlined" style="font-size:16px;">add</span> Tambah
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 4: Akun -->
+      <div class="settings-section">
+        <h5 class="settings-section-title"><span class="material-symbols-outlined">person</span> Pengaturan Akun</h5>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <label class="settings-form-label">Nama Tampilan</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="settings-display-name" class="form-input" placeholder="Nama tampilan..." style="flex:1; height:36px; font-size:13px;" />
+              <button class="btn btn-outline btn-sm" id="btn-save-display-name" style="height:36px; padding:0 14px; white-space:nowrap;">Simpan</button>
+            </div>
+          </div>
+          <hr style="border:none; border-top:1px solid var(--outline-variant); margin: 4px 0;" />
+          <div>
+            <label class="settings-form-label">Ganti Password</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <input type="password" id="settings-old-password" class="form-input" placeholder="Password lama" style="height:36px; font-size:13px;" />
+              <input type="password" id="settings-new-password" class="form-input" placeholder="Password baru" style="height:36px; font-size:13px;" />
+              <input type="password" id="settings-confirm-password" class="form-input" placeholder="Konfirmasi password baru" style="height:36px; font-size:13px;" />
+              <button class="btn btn-outline btn-sm" id="btn-change-password" style="height:36px; padding:0 14px; align-self: flex-end;">Ganti Password</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Backup & Restore -->
+      <div class="settings-section admin-only">
+        <h5 class="settings-section-title"><span class="material-symbols-outlined">cloud_sync</span> Backup & Restore</h5>
+        <p style="font-size:13px; color:var(--on-surface-variant); margin-bottom:12px;">Download seluruh data siswa & nilai sebagai file JSON, atau restore dari backup sebelumnya.</p>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline btn-sm" id="btn-backup-db" style="flex:1; height:40px;">
+            <span class="material-symbols-outlined" style="font-size:18px;">download</span> Download Backup
+          </button>
+          <button class="btn btn-outline btn-sm" id="btn-restore-db" style="flex:1; height:40px; color:var(--error); border-color:var(--error);">
+            <span class="material-symbols-outlined" style="font-size:18px;">upload</span> Restore Backup
+          </button>
+        </div>
+        <input type="file" id="restore-file-input" accept=".json" style="display:none;" />
+      </div>
+
+    </div>
+  </aside>
 
   <script src="app.js"></script>
 </body>

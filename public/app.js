@@ -36,6 +36,7 @@ const store = {
   nextId: 1,
   activityLogs: [],
   currentClassFilter: 'all',
+  kkm: parseInt(localStorage.getItem('eduranker_kkm') || '55', 10),
 };
 
 let currentUser = null;
@@ -238,7 +239,7 @@ function gradeOf(avg) {
 }
 
 function isPass(avg) {
-  return avg >= 55;
+  return avg >= store.kkm;
 }
 
 // ─── Student Management ───────────────────────────────────────
@@ -2565,5 +2566,273 @@ if (document.getElementById('btn-close-delete-modal')) {
     if (e.target === deleteConfirmModal) closeDeleteConfirmModal();
   });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS PANEL LOGIC
+// ═══════════════════════════════════════════════════════════════
+
+// ─── Settings Panel Open/Close ────────────────────────────────
+const settingsPanel = document.getElementById('settings-panel');
+const settingsOverlay = document.getElementById('settings-overlay');
+
+function openSettings() {
+  settingsPanel.classList.add('show');
+  settingsOverlay.classList.add('show');
+  renderSettingsSubjects();
+  // Populate display name
+  if (currentUser) {
+    document.getElementById('settings-display-name').value = currentUser.display_name;
+  }
+  // Sync KKM slider
+  document.getElementById('settings-kkm-slider').value = store.kkm;
+  document.getElementById('settings-kkm-display').textContent = store.kkm;
+  // Sync dark mode toggle
+  document.getElementById('toggle-dark-mode').checked = document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
+function closeSettings() {
+  settingsPanel.classList.remove('show');
+  settingsOverlay.classList.remove('show');
+}
+
+document.getElementById('btn-open-settings').addEventListener('click', openSettings);
+document.getElementById('btn-close-settings').addEventListener('click', closeSettings);
+settingsOverlay.addEventListener('click', closeSettings);
+
+// ─── 1. Dark Mode ─────────────────────────────────────────────
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('eduranker_theme', theme);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('eduranker_theme');
+  if (saved === 'dark') {
+    applyTheme('dark');
+  }
+}
+
+document.getElementById('toggle-dark-mode').addEventListener('change', (e) => {
+  const theme = e.target.checked ? 'dark' : 'light';
+  applyTheme(theme);
+  showToast(theme === 'dark' ? '🌙 Mode Gelap diaktifkan' : '☀️ Mode Terang diaktifkan', 'success');
+});
+
+initTheme();
+
+// ─── 2. KKM Slider ────────────────────────────────────────────
+const kkmSlider = document.getElementById('settings-kkm-slider');
+const kkmDisplay = document.getElementById('settings-kkm-display');
+
+kkmSlider.addEventListener('input', () => {
+  const val = parseInt(kkmSlider.value, 10);
+  kkmDisplay.textContent = val;
+  store.kkm = val;
+  localStorage.setItem('eduranker_kkm', val);
+});
+
+kkmSlider.addEventListener('change', () => {
+  // Re-render all views with new KKM
+  if (store.sorted.length > 0) {
+    renderResultsPage();
+    renderDashboard();
+    renderAnalyticsPage();
+  }
+  showToast(`✓ KKM diubah menjadi ${store.kkm}`, 'success');
+});
+
+// ─── 3. Manajemen Mata Pelajaran ──────────────────────────────
+function loadSubjectsFromStorage() {
+  const saved = localStorage.getItem('eduranker_subjects');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        store.subjects = parsed;
+      }
+    } catch(e) { /* ignore */ }
+  }
+}
+
+function saveSubjectsToStorage() {
+  localStorage.setItem('eduranker_subjects', JSON.stringify(store.subjects));
+}
+
+function renderSettingsSubjects() {
+  const list = document.getElementById('settings-subjects-list');
+  if (!list) return;
+  list.innerHTML = store.subjects.map((subj, i) => `
+    <div class="settings-subject-item">
+      <span>${escHtml(subj)}</span>
+      <button class="btn-icon" data-remove-subject="${i}" title="Hapus">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  `).join('');
+
+  // Bind delete
+  list.querySelectorAll('[data-remove-subject]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.removeSubject);
+      const name = store.subjects[idx];
+      showDeleteConfirm(`Hapus mata pelajaran <strong>${escHtml(name)}</strong>? Data nilai yang sudah diinput untuk pelajaran ini tidak akan ditampilkan lagi.`, () => {
+        store.subjects.splice(idx, 1);
+        saveSubjectsToStorage();
+        renderSettingsSubjects();
+        renderInputTable();
+        showToast(`Mata pelajaran "${name}" dihapus`, 'success');
+      });
+    });
+  });
+}
+
+document.getElementById('btn-add-subject').addEventListener('click', () => {
+  const input = document.getElementById('settings-new-subject');
+  const name = input.value.trim();
+  if (!name) {
+    showToast('Nama pelajaran tidak boleh kosong.', 'error');
+    return;
+  }
+  if (store.subjects.some(s => s.toLowerCase() === name.toLowerCase())) {
+    showToast('Mata pelajaran sudah ada.', 'error');
+    return;
+  }
+  store.subjects.push(name);
+  saveSubjectsToStorage();
+  input.value = '';
+  renderSettingsSubjects();
+  renderInputTable();
+  showToast(`✓ Mata pelajaran "${name}" ditambahkan`, 'success');
+});
+
+loadSubjectsFromStorage();
+
+// ─── 4. Pengaturan Akun ───────────────────────────────────────
+document.getElementById('btn-save-display-name').addEventListener('click', async () => {
+  const name = document.getElementById('settings-display-name').value.trim();
+  if (!name) {
+    showToast('Nama tampilan tidak boleh kosong.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch('/api/account/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ display_name: name })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Gagal memperbarui nama.');
+    }
+    // Update local state
+    currentUser.display_name = name;
+    document.getElementById('sidebar-display-name').textContent = name;
+    document.getElementById('sidebar-avatar').textContent = getInitials(name);
+    document.getElementById('topbar-avatar').textContent = getInitials(name);
+    showToast('✓ Nama tampilan berhasil diubah', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+document.getElementById('btn-change-password').addEventListener('click', async () => {
+  const oldPw = document.getElementById('settings-old-password').value;
+  const newPw = document.getElementById('settings-new-password').value;
+  const confirmPw = document.getElementById('settings-confirm-password').value;
+
+  if (!oldPw || !newPw || !confirmPw) {
+    showToast('Semua field password harus diisi.', 'error');
+    return;
+  }
+  if (newPw !== confirmPw) {
+    showToast('Konfirmasi password tidak cocok.', 'error');
+    return;
+  }
+  if (newPw.length < 6) {
+    showToast('Password baru minimal 6 karakter.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/account/password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_password: oldPw, new_password: newPw })
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || 'Gagal mengganti password.');
+    }
+    document.getElementById('settings-old-password').value = '';
+    document.getElementById('settings-new-password').value = '';
+    document.getElementById('settings-confirm-password').value = '';
+    showToast('✓ Password berhasil diubah', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+// ─── 5. Backup & Restore ──────────────────────────────────────
+document.getElementById('btn-backup-db').addEventListener('click', async () => {
+  try {
+    const res = await fetch('/api/backup');
+    if (!res.ok) throw new Error('Gagal membuat backup.');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `eduranker_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ Backup berhasil diunduh', 'success');
+    addLog('Backup', 'Data berhasil di-backup', 'green');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+});
+
+const restoreFileInput = document.getElementById('restore-file-input');
+
+document.getElementById('btn-restore-db').addEventListener('click', () => {
+  showDeleteConfirm('⚠️ <strong>Perhatian!</strong> Restore akan <strong>menghapus seluruh data yang ada</strong> dan menggantinya dengan data dari file backup. Lanjutkan?', () => {
+    restoreFileInput.click();
+  });
+});
+
+restoreFileInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    if (!data.students || !Array.isArray(data.students)) {
+      throw new Error('Format file backup tidak valid.');
+    }
+
+    const res = await fetch('/api/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ students: data.students })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.error || 'Gagal restore data.');
+    }
+
+    const result = await res.json();
+    await loadStudents();
+    renderDashboard();
+    showToast(`✓ Restore berhasil! ${result.restored} siswa dipulihkan.`, 'success');
+    addLog('Restore', `${result.restored} siswa dipulihkan dari backup`, 'green');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+
+  // Reset file input
+  restoreFileInput.value = '';
+});
 
 init();

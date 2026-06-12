@@ -247,6 +247,20 @@ async function bulkAddStudentsDb(studentsArray) {
   return results;
 }
 
+// ─── User Profile & Password Updates ─────────────────────────
+async function updateUserProfile(id, displayName) {
+  await pool.query('UPDATE users SET display_name = ? WHERE id = ?', [displayName, id]);
+}
+
+async function updateUserPassword(id, hashedPassword) {
+  await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
+}
+
+async function getUserPassword(id) {
+  const [rows] = await pool.query('SELECT password FROM users WHERE id = ?', [id]);
+  return rows[0] ? rows[0].password : null;
+}
+
 module.exports = {
   initDatabase,
   findUserByUsername,
@@ -257,4 +271,8 @@ module.exports = {
   deleteStudentDb,
   deleteAllStudentsDb,
   bulkAddStudentsDb,
+  updateUserProfile,
+  updateUserPassword,
+  getUserPassword,
 };
+

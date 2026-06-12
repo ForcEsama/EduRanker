@@ -17,6 +17,9 @@ const {
   deleteStudentDb,
   deleteAllStudentsDb,
   bulkAddStudentsDb,
+  updateUserProfile,
+  updateUserPassword,
+  getUserPassword,
 } = require('./database');
 
 const app = express();
@@ -262,6 +265,94 @@ app.post('/api/students/bulk', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error('Error bulk adding students:', err);
     res.status(500).json({ error: 'Gagal mengimport data siswa.' });
+  }
+});
+
+// ─── Account Routes ──────────────────────────────────────────
+
+// PUT /api/account/profile — update display name
+app.put('/api/account/profile', requireAuth, async (req, res) => {
+  try {
+    const { display_name } = req.body;
+    if (!display_name || !display_name.trim()) {
+      return res.status(400).json({ error: 'Nama tampilan harus diisi.' });
+    }
+    await updateUserProfile(req.session.userId, display_name.trim());
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({ error: 'Gagal memperbarui profil.' });
+  }
+});
+
+// PUT /api/account/password — change password
+app.put('/api/account/password', requireAuth, async (req, res) => {
+  try {
+    const { old_password, new_password } = req.body;
+    if (!old_password || !new_password) {
+      return res.status(400).json({ error: 'Password lama dan baru harus diisi.' });
+    }
+    if (new_password.length < 6) {
+      return res.status(400).json({ error: 'Password baru minimal 6 karakter.' });
+    }
+
+    const currentHash = await getUserPassword(req.session.userId);
+    if (!currentHash) {
+      return res.status(404).json({ error: 'User tidak ditemukan.' });
+    }
+
+    const isValid = bcrypt.compareSync(old_password, currentHash);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Password lama salah.' });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const newHash = bcrypt.hashSync(new_password, salt);
+    await updateUserPassword(req.session.userId, newHash);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error changing password:', err);
+    res.status(500).json({ error: 'Gagal mengganti password.' });
+  }
+});
+
+// ─── Backup & Restore Routes ─────────────────────────────────
+
+// GET /api/backup — download all data
+app.get('/api/backup', requireAdmin, async (req, res) => {
+  try {
+    const students = await getAllStudents();
+    const backup = {
+      version: '1.0',
+      exported_at: new Date().toISOString(),
+      students
+    };
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename=eduranker_backup_${new Date().toISOString().slice(0,10)}.json`);
+    res.json(backup);
+  } catch (err) {
+    console.error('Error creating backup:', err);
+    res.status(500).json({ error: 'Gagal membuat backup.' });
+  }
+});
+
+// POST /api/restore — restore data from backup
+app.post('/api/restore', requireAdmin, async (req, res) => {
+  try {
+    const { students } = req.body;
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ error: 'Data backup kosong atau tidak valid.' });
+    }
+
+    // Clear existing data
+    await deleteAllStudentsDb();
+
+    // Re-import
+    const ids = await bulkAddStudentsDb(students);
+    res.json({ success: true, restored: ids.length });
+  } catch (err) {
+    console.error('Error restoring backup:', err);
+    res.status(500).json({ error: 'Gagal restore data.' });
   }
 });
 
