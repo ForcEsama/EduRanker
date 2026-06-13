@@ -73,10 +73,10 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
-  --shadow-xl: 0 12px 40px rgba(0,0,0,0.15);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.15);
 
   /* Sidebar */
   --sidebar-width: 256px;
@@ -93,7 +93,9 @@
 }
 
 /* ─── Reset & Base ───────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -634,7 +636,7 @@ body {
   margin-bottom: var(--space-lg);
 }
 
-.analysis-grid > div {
+.analysis-grid>div {
   min-width: 0;
 }
 
@@ -944,7 +946,7 @@ body {
   position: sticky;
   right: 0;
   z-index: 2;
-  box-shadow: -4px 0 12px -4px rgba(0,0,0,0.1);
+  box-shadow: -4px 0 12px -4px rgba(0, 0, 0, 0.1);
 }
 
 .data-table th:last-child {
@@ -1040,17 +1042,33 @@ tr:hover .student-name {
   font-size: 20px;
 }
 
-.rank-number.primary { color: var(--primary); }
-.rank-number.normal { color: var(--on-surface-variant); }
-.rank-number.error { color: var(--error); }
+.rank-number.primary {
+  color: var(--primary);
+}
+
+.rank-number.normal {
+  color: var(--on-surface-variant);
+}
+
+.rank-number.error {
+  color: var(--error);
+}
 
 .medal-icon {
   font-size: 28px !important;
 }
 
-.medal-gold { color: var(--gold); }
-.medal-silver { color: var(--silver); }
-.medal-bronze { color: var(--bronze); }
+.medal-gold {
+  color: var(--gold);
+}
+
+.medal-silver {
+  color: var(--silver);
+}
+
+.medal-bronze {
+  color: var(--bronze);
+}
 
 /* ─── Score Badge ────────────────────────────────────────── */
 .score-badge {
@@ -1253,7 +1271,7 @@ tr:hover .student-name {
   gap: var(--space-lg);
 }
 
-.input-grid > div {
+.input-grid>div {
   min-width: 0;
 }
 
@@ -1345,8 +1363,14 @@ tr:hover .student-name {
   margin-bottom: var(--space-xs);
 }
 
-.progress-header .label { color: var(--on-surface-variant); }
-.progress-header .value { color: var(--primary); font-weight: 700; }
+.progress-header .label {
+  color: var(--on-surface-variant);
+}
+
+.progress-header .value {
+  color: var(--primary);
+  font-weight: 700;
+}
 
 .progress-bar {
   width: 100%;
@@ -1493,9 +1517,17 @@ tr:hover .student-name {
 }
 
 @keyframes stepPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .algo-step h4 {
@@ -1604,9 +1636,17 @@ tr:hover .student-name {
   font-weight: 700;
 }
 
-.algo-count-cell .count-value.has-value { color: var(--primary); }
-.algo-count-cell .count-value.no-value { color: var(--outline-variant); }
-.algo-count-cell .count-value.cumulative { color: var(--secondary); }
+.algo-count-cell .count-value.has-value {
+  color: var(--primary);
+}
+
+.algo-count-cell .count-value.no-value {
+  color: var(--outline-variant);
+}
+
+.algo-count-cell .count-value.cumulative {
+  color: var(--secondary);
+}
 
 /* ─── Complexity Cards ───────────────────────────────────── */
 .complexity-grid {
@@ -1697,8 +1737,13 @@ tr:hover .student-name {
   line-height: 40px;
 }
 
-.result-stat-value.primary { color: var(--primary); }
-.result-stat-value.secondary { color: var(--secondary); }
+.result-stat-value.primary {
+  color: var(--primary);
+}
+
+.result-stat-value.secondary {
+  color: var(--secondary);
+}
 
 .result-stat-sub {
   margin-top: var(--space-xs);
@@ -1910,9 +1955,17 @@ tr.fail-row:hover {
   flex-shrink: 0;
 }
 
-.log-dot.green { background: var(--secondary); }
-.log-dot.blue { background: var(--primary); }
-.log-dot.amber { background: var(--tertiary-container); }
+.log-dot.green {
+  background: var(--secondary);
+}
+
+.log-dot.blue {
+  background: var(--primary);
+}
+
+.log-dot.amber {
+  background: var(--tertiary-container);
+}
 
 .log-title {
   font-size: 14px;
@@ -1965,6 +2018,7 @@ tr.fail-row:hover {
 .generate-bar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-md);
   padding: var(--space-md) var(--space-lg);
   background: var(--surface-container);
@@ -2008,6 +2062,7 @@ tr.fail-row:hover {
 
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 1200px) {
+
   .stats-grid,
   .results-stats {
     grid-template-columns: repeat(2, 1fr);
@@ -2077,6 +2132,7 @@ tr.fail-row:hover {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2184,13 +2240,25 @@ tr.fail-row:hover {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .modal-header {
@@ -2818,8 +2886,13 @@ tr.fail-row:hover {
 
 /* Spin animation for loading */
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin {
@@ -2929,7 +3002,7 @@ body.role-user .admin-only {
     padding: 0;
   }
 
-  body > *:not(#print-modal) {
+  body>*:not(#print-modal) {
     display: none !important;
   }
 
@@ -3346,14 +3419,14 @@ body.role-user .admin-only {
   background: white;
   border-radius: var(--radius-full);
   transition: all 300ms ease;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background: var(--primary);
 }
 
-.toggle-switch input:checked + .toggle-slider::before {
+.toggle-switch input:checked+.toggle-slider::before {
   transform: translateX(22px);
 }
 
