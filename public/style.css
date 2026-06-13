@@ -634,6 +634,10 @@ body {
   margin-bottom: var(--space-lg);
 }
 
+.analysis-grid > div {
+  min-width: 0;
+}
+
 /* ─── Chart Card ─────────────────────────────────────────── */
 .chart-card-header {
   display: flex;
@@ -1225,6 +1229,10 @@ tr:hover .student-name {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: var(--space-lg);
+}
+
+.input-grid > div {
+  min-width: 0;
 }
 
 .algo-req-card {

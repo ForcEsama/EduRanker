@@ -1359,7 +1359,7 @@ function renderResultTable(students, search, isSorted = false) {
         </div>
       </td>
       <td style="font-size:14px;color:var(--on-surface-variant);font-family:monospace;">${formatStudentId(s.id)}</td>
-      <td style="font-weight:600;color:var(--on-surface-variant);"><span class="status-chip neutral" style="font-size:12px;background:var(--surface-container-high);color:var(--on-surface-variant);">${escHtml(s.class_name)}</span></td>
+      <td style="font-weight:600;color:var(--on-surface-variant);white-space:nowrap;"><span class="status-chip neutral" style="font-size:12px;background:var(--surface-container-high);color:var(--on-surface-variant);">${escHtml(s.class_name)}</span></td>
       ${subjCells}
       <td style="text-align:center;">
         <span class="score-badge ${scoreClass}">${s.average.toFixed(1)}</span>
