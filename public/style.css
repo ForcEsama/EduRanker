@@ -914,8 +914,8 @@ body {
 }
 
 .data-table th {
-  padding: var(--space-md) var(--space-lg);
-  font-size: 14px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.05em;
   color: var(--on-surface-variant);
@@ -933,9 +933,31 @@ body {
 }
 
 .data-table td {
-  padding: var(--space-md) var(--space-lg);
-  font-size: 16px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 14px;
   vertical-align: middle;
+}
+
+/* Sticky right column for tables */
+.data-table th:last-child,
+.data-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  box-shadow: -4px 0 12px -4px rgba(0,0,0,0.1);
+}
+
+.data-table th:last-child {
+  background: var(--surface-container-low);
+}
+
+.data-table td:last-child {
+  background: var(--surface);
+  transition: background var(--transition);
+}
+
+.data-table tbody tr:hover td:last-child {
+  background: var(--surface-container);
 }
 
 .table-wrap {
